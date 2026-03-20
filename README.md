@@ -765,3 +765,6 @@ Payout = 0.70 × (₹1,000 − ₹180) × 0.8125 = ₹466.15
 ---
 
 *Scudo — built for the drivers who keep cities moving even when cities shut down.*
+
+
+YT LINK - 
