@@ -247,6 +247,9 @@ For drivers with <30 days of earnings history, a gradient-boosted classifier tra
 
 India's delivery drivers are paid weekly or bi-weekly. Monthly insurance premiums create a cash-flow mismatch — drivers must maintain ₹200–₹400 in reserve for a deduction that doesn't match their earning cycle, producing lapse rates of 40–60% in traditional monthly-premium gig products. A weekly premium of ₹30–₹80 maps directly to "this week's insurance comes from this week's earnings." Lapse rates in weekly-debit UPI AutoPay products run 3–4× lower.
 
+<img width="985" height="612" alt="image" src="https://github.com/user-attachments/assets/33a91e24-cc7e-4b10-ad65-7399c487a49b" />
+
+
 ### Premium Rate Bands
 
 | Annual Risk Score | Premium Rate | Rationale |
