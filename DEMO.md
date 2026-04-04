@@ -1,6 +1,460 @@
 # Scudo Demo Application — Developer Guide
 
-## 🚀 Quick Start
+## 🆕 Python Model Integration
+
+### Overview
+
+The Scudo.jsx React application now integrates with a **production-grade Python scikit-learn ML model** (`scudo_model.py`). The Python backend handles:
+
+- ✅ Premium calculation with real risk factors
+- ✅ ML-based zone pricing predictions
+- ✅ Claims management and processing
+- ✅ Data validation and error handling
+- ✅ Batch processing capabilities
+
+### Architecture
+
+```
+React Frontend (http://localhost:3000)
+           ↓
+    useScudoAPI Hook
+           ↓
+Flask REST API (http://localhost:5000)
+           ↓
+ScudoInsuranceModel (Python/scikit-learn)
+           ↓
+Pre-trained ML Models + Premium Calculator
+```
+
+### Quick Start with Python Model
+
+#### 1️⃣ Install Python Backend
+
+```bash
+# Navigate to Scudo root directory
+cd ../
+
+# Install Python dependencies
+pip install -r backend-requirements.txt
+# OR
+pip install Flask Flask-CORS numpy pandas scikit-learn joblib
+```
+
+**Requirements:**
+- Python 3.8+
+- pip
+
+#### 2️⃣ Start the Backend API Server
+
+```bash
+# From Scudo root directory
+python api_server.py
+```
+
+**Expected output:**
+```
+================================================================================
+Scudo Insurance Model - Flask API Server
+================================================================================
+
+🔌 Starting API server on http://localhost:5000
+
+📚 Available endpoints:
+   GET  /api/health                      - Health check
+   GET  /api/info                        - Model information
+   GET  /api/config/cities               - Get supported cities
+   GET  /api/config/zones/<city>         - Get zones for city
+   POST /api/premium/calculate           - Calculate premium
+   POST /api/premium/batch               - Batch calculate premiums
+   POST /api/ml/predict                  - ML model predictions
+   GET  /api/ml/zone-adjustment/<city>   - Get zone adjustment
+   POST /api/claims/fire-trigger         - Create claim
+   POST /api/claims/<id>/progress        - Progress claim stage
+   POST /api/claims/<id>/payout          - Calculate payout
+
+🔗 Connect React app via: http://localhost:5000
+✅ CORS enabled for http://localhost:3000
+================================================================================
+```
+
+**Automatic Model Training:** The API server trains a 500-sample ML model on startup (~2-3 seconds).
+
+#### 3️⃣ Start the React Application
+
+In a **new terminal window**:
+
+```bash
+# Navigate to frontend directory
+cd Scudo-guidewire-devtrails
+
+# Install Node dependencies (first time only)
+npm install
+
+# Start development server
+npm run dev
+```
+
+**Expected output:**
+```
+  VITE v4.3.9  ready in 1234 ms
+
+  ➜  Local:   http://localhost:3000/
+  ➜  press h to show help
+```
+
+#### 4️⃣ Test the Integration
+
+1. Open http://localhost:3000 in your browser
+2. Check the browser console (F12) for any API connection messages
+3. Use the Premium Calculator tab — calculations should now use the Python backend
+4. Switch to ML Pricing Demo — predictions come from the trained ML model
+5. Try Claims Engine — triggers are processed by the Python backend
+
+---
+
+### Using the API Directly
+
+#### Test Health Check
+
+```bash
+curl http://localhost:5000/api/health
+```
+
+Response:
+```json
+{
+  "status": "healthy",
+  "timestamp": "2026-04-04T10:30:45.123456",
+  "model_fitted": true
+}
+```
+
+#### Calculate a Premium
+
+```bash
+curl -X POST http://localhost:5000/api/premium/calculate \
+  -H "Content-Type: application/json" \
+  -d '{
+    "city": "Mumbai",
+    "daily_earnings": 800,
+    "weekly_hours": 44,
+    "weekly_orders": 30,
+    "weekly_gmv": 5500,
+    "zone": "Andheri West"
+  }'
+```
+
+Response:
+```json
+{
+  "success": true,
+  "city": "Mumbai",
+  "final_weekly_premium": 156.72,
+  "final_annual_premium": 8149.44,
+  "risk_tier": "Medium",
+  "wai": 1.0,
+  "risk_breakdown": [
+    {"label": "Weather", "value": 7920.0, "pct": 34.56},
+    {"label": "AQI", "value": 0.0, "pct": 0.0},
+    {"label": "Heat", "value": 1584.0, "pct": 6.91},
+    {"label": "Civil", "value": 8112.0, "pct": 35.38},
+    {"label": "Market", "value": 4752.0, "pct": 20.73}
+  ]
+}
+```
+
+#### Batch Calculate Premiums
+
+```bash
+curl -X POST http://localhost:5000/api/premium/batch \
+  -H "Content-Type: application/json" \
+  -d '{
+    "drivers": [
+      {"city": "Mumbai", "daily_earnings": 800, "weekly_hours": 44, "weekly_orders": 30, "weekly_gmv": 5500},
+      {"city": "Delhi", "daily_earnings": 900, "weekly_hours": 42, "weekly_orders": 28, "weekly_gmv": 5000}
+    ]
+  }'
+```
+
+#### Get ML Prediction
+
+```bash
+curl -X POST http://localhost:5000/api/ml/predict \
+  -H "Content-Type: application/json" \
+  -d '{
+    "scenarios": [
+      {
+        "city": "Mumbai",
+        "daily_earnings": 800,
+        "weekly_hours": 44,
+        "weekly_orders": 30,
+        "weekly_gmv": 5500,
+        "zone_multiplier": 0.88,
+        "is_monsoon": 0
+      }
+    ]
+  }'
+```
+
+#### Fire a Claim
+
+```bash
+curl -X POST http://localhost:5000/api/claims/fire-trigger \
+  -H "Content-Type: application/json" \
+  -d '{
+    "trigger_id": 1,
+    "city": "Mumbai",
+    "affected_count": 500
+  }'
+```
+
+---
+
+### React Hook Usage
+
+Use the `useScudoAPI` hook in your React components:
+
+```javascript
+import useScudoAPI from './hooks/useScudoAPI';
+
+function MyComponent() {
+  const { calculatePremium, loading, error } = useScudoAPI();
+
+  const handleCalculate = async () => {
+    try {
+      const premium = await calculatePremium({
+        city: 'Mumbai',
+        daily_earnings: 800,
+        weekly_hours: 44,
+        weekly_orders: 30,
+        weekly_gmv: 5500,
+        zone: 'Andheri West'
+      });
+      
+      console.log('Weekly Premium:', premium.final_weekly_premium);
+      console.log('Annual Premium:', premium.final_annual_premium);
+    } catch (err) {
+      console.error('Error:', error);
+    }
+  };
+
+  return (
+    <div>
+      <button onClick={handleCalculate} disabled={loading}>
+        {loading ? 'Calculating...' : 'Calculate Premium'}
+      </button>
+    </div>
+  );
+}
+```
+
+**Available Hook Functions:**
+
+```javascript
+// Configuration
+const { getCities } = useScudoAPI();
+const { zones } = await getZones('Mumbai');
+
+// Premium Calculation
+const { calculatePremium } = useScudoAPI();
+const premium = await calculatePremium(premiumData);
+
+// Batch Operations
+const { calculatePremiumBatch } = useScudoAPI();
+const results = await calculatePremiumBatch(driversArray);
+
+// ML Predictions
+const { mlPredict } = useScudoAPI();
+const predictions = await mlPredict(scenarios);
+
+// Claims
+const { fireTrigger, progressClaim, calculateClaimPayout } = useScudoAPI();
+const claim = await fireTrigger(triggerId, city);
+const updated = await progressClaim(claimId);
+const payout = await calculateClaimPayout(claimId, dailyEarnings);
+```
+
+---
+
+### Environment Configuration
+
+The React app reads the API URL from `.env.local`:
+
+```
+# .env.local
+VITE_API_URL=http://localhost:5000/api
+VITE_DEBUG=true
+```
+
+**To connect to a different backend:**
+
+```bash
+# Update .env.local
+VITE_API_URL=https://api.production.com/api
+
+# Or set at runtime
+export VITE_API_URL=http://another-server:5000/api
+```
+
+---
+
+### API Endpoints Reference
+
+#### Configuration
+
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `/api/health` | GET | Health check |
+| `/api/info` | GET | Model information |
+| `/api/config/cities` | GET | Supported cities |
+| `/api/config/zones/<city>` | GET | Zones for city |
+| `/api/config/city-data/<city>` | GET | City disruption data |
+
+#### Premium Calculation
+
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `/api/premium/calculate` | POST | Calculate single premium |
+| `/api/premium/batch` | POST | Calculate batch premiums |
+
+#### ML Pricing
+
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `/api/ml/predict` | POST | ML model predictions |
+| `/api/ml/zone-adjustment/<city>/<zone>` | GET | Zone adjustment factor |
+
+#### Claims
+
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `/api/claims/fire-trigger` | POST | Create claim from trigger |
+| `/api/claims/<id>/progress` | POST | Move claim to next stage |
+| `/api/claims/<id>/payout` | POST | Calculate claim payout |
+
+---
+
+### Troubleshooting
+
+#### 🔴 Backend Won't Start
+
+**Error:** `ModuleNotFoundError: No module named 'flask'`
+
+**Solution:**
+```bash
+pip install -r backend-requirements.txt
+```
+
+#### 🔴 React Can't Connect to API
+
+**Error:** `Failed to fetch from http://localhost:5000/api`
+
+**Solution:**
+1. Ensure backend is running: `python api_server.py`
+2. Check `.env.local` has correct VITE_API_URL
+3. Verify CORS is enabled (should see in backend console)
+4. Check ports: React on 3000, Backend on 5000
+
+#### 🔴 Model Training Takes Too Long
+
+**Current:** ~2-3 seconds on startup
+
+**To Speed Up:**
+```python
+# In api_server.py, reduce sample size
+metrics = scudo.train_ml_model(n_samples=100)  # Lower is faster
+```
+
+#### 🔴 API Returns 404 Error
+
+**Solution:** Verify endpoint URL matches API route exactly
+```bash
+# Test with curl
+curl -v http://localhost:5000/api/health
+```
+
+#### 🔴 CORS Error in Browser Console
+
+**Error:** `Access to XMLHttpRequest blocked by CORS policy`
+
+**Solution:** Backend should have `CORS(app)` enabled. If not, reinstall:
+```bash
+pip install Flask-CORS
+```
+
+---
+
+### Performance Tips
+
+#### 1. Single Request vs Batch
+
+**Slow (100 drivers):**
+```javascript
+for (const driver of drivers) {
+  const premium = await calculatePremium(driver);
+}
+```
+
+**Fast (100 drivers):**
+```javascript
+const results = await calculatePremiumBatch(drivers);
+```
+
+#### 2. Cache Zone Data
+
+```javascript
+// Load once on app start
+const zones = await getZones(city);
+
+// Reuse in component
+useEffect(() => {
+  // zones already loaded
+}, []);
+```
+
+#### 3. Reduce Model Training Time
+
+Edit `api_server.py`:
+```python
+# Use smaller dataset for faster training
+metrics = scudo.train_ml_model(n_samples=200)  # Default: 500
+```
+
+---
+
+### Deployment Options
+
+#### Docker (Recommended)
+
+```bash
+# Build image
+docker build -t scudo-app .
+
+# Run container
+docker run -p 3000:3000 -p 5000:5000 scudo-app
+```
+
+#### Heroku
+
+```bash
+# Backend
+heroku create scudo-backend
+git push heroku main
+
+# Frontend (build with correct API URL)
+VITE_API_URL=https://scudo-backend.herokuapp.com/api npm run build
+# Deploy to Vercel/Netlify
+```
+
+#### AWS
+
+- Backend: EC2 or Lambda (API Gateway)
+- Frontend: CloudFront + S3
+- Database: RDS (if needed)
+
+---
+
+## 🚀 Quick Start (Original - Frontend Only)
 
 ### Prerequisites
 - Node.js 16+ (LTS recommended)
