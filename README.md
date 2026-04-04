@@ -1,6 +1,8 @@
+![Scudo Banner](./images/scudo_banner.png)
+
 # Scudo — AI-Enabled Parametric Income Insurance for Gig Workers
 
-Scudo is an AI-powered parametric income insurance platform built for India's 12 million platform-based delivery workers. When an external disruption — cyclone, bandh, AQI emergency, platform outage — prevents a driver from earning, Scudo detects it automatically, verifies it against authoritative data sources, and pays out by 7 AM the next morning. No claim forms. No assessors. No paperwork.
+Scudo is an AI-powered parametric income platform built for India's 12 million platform-based delivery workers. When an external disruption — cyclone, bandh, AQI emergency, platform outage — prevents a driver from earning, Scudo detects it automatically, verifies it against authoritative data sources, and pays out by 7 AM the next morning. No claim forms. No assessors. No paperwork.
 
 ---
 
@@ -178,6 +180,25 @@ Market anomaly loss rates are structurally lower than weather/civil rates becaus
 
 Scudo onboarding is optimised for low-literacy, low-smartphone-proficiency users. It takes under 8 minutes and requires no document upload beyond what the driver already submitted to their platform.
 
+```mermaid
+sequenceDiagram
+    actor Driver
+    participant Scudo
+    participant API as Platform API
+    participant Engine as Risk Engine
+
+    Driver->>Scudo: 1. Enter Mobile Number (OTP)
+    Scudo->>API: Fetch Profile (Consent)
+    API-->>Scudo: Return Name, City, Zone
+    Scudo->>API: Fetch Last 90 Days Earnings
+    API-->>Scudo: Return Earnings & Hours Data
+    Scudo->>Engine: Send Baseline Data
+    Engine-->>Scudo: Compute Risk Score & Premium
+    Scudo->>Driver: Show Premium & Summary
+    Driver->>Scudo: Setup UPI AutoPay / NACH
+    Scudo->>Driver: Issue Policy via WhatsApp (PDF)
+```
+
 ### Step 1 — Identity and Platform Linking (2 min)
 
 The driver enters their mobile number (OTP verified). Scudo fetches their platform profile from the linked delivery app API using the driver's consent. This provides: driver name, city, registered zone, platform enrollment date (tenure signal), and vehicle type.
@@ -317,18 +338,23 @@ Scudo's core promise is zero-friction payouts. No driver should ever file a clai
 
 ### Trigger Monitoring Pipeline
 
-```
-Every 30 minutes:
-1. Poll IMD API              → check for new/upgraded weather alerts by district
-2. Poll CPCB/SAFAR API       → check AQI levels by district
-3. Poll government feeds     → check for bandh/curfew declarations
-4. Poll platform volume API  → check for anomalous order volume drops
-5. Poll fuel price feeds     → check IOC/HPCL/BPCL for price change notifications
-
-If any trigger threshold is crossed:
-→ Create DisruptionEvent record
-→ Identify enrolled drivers in the affected city
-→ Begin Claim Initiation
+```mermaid
+graph TD
+    A[Cron Job: Every 30 mins] --> B{Poll Disruption APIs}
+    B -->|Weather| C[IMD API]
+    B -->|Pollution| D[CPCB/SAFAR API]
+    B -->|Civil/Strikes| E[Gov RSS Feeds]
+    B -->|Market| F[Platform Volume API]
+    
+    C --> G{Threshold Crossed?}
+    D --> G
+    E --> G
+    F --> G
+    
+    G -->|Yes| H[Create Disruption Event]
+    H --> I[Identify Affected Drivers]
+    I --> J[Begin Claim Initiation]
+    G -->|No| K[Wait for next cycle]
 ```
 
 ### Claim Initiation Flow
@@ -629,7 +655,7 @@ Coverage across 15,000–20,000+ insured workers on several platforms. The loss 
 
 ### Revenue vs Expense vs Profit — Year Wise (₹ Crore)
 
-![Revenue vs Expense vs Profit — Year Wise](./revenue_chart.png)
+![Revenue vs Expense vs Profit — Year Wise](./images/revenue_chart.png)
 
 The chart illustrates the three-phase trajectory: near-zero revenue and a small operating loss in Year 1 (2026) during the pilot; accelerating premium revenue and improving loss ratios through Years 2–3 (2027–2028) as personalisation and fraud controls mature; and a step-change in both revenue and net profit in Years 4–5 (2029–2030) as multi-platform scale drives the expense ratio down and premium volume up. Net profit turns positive and grows steeply from 2029 onward, reaching approximately ₹110 Crore by 2030 as premium revenue (~₹365 Crore) comfortably exceeds total expenses (~₹255 Crore).
 

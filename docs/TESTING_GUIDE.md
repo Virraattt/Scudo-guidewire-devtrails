@@ -41,76 +41,15 @@ npm run trigger:all
 
 ---
 
-## Test Suite 1: Authentication & Registration
 
-### Test 1.1: Login with Pre-Seeded Driver
-**Steps:**
-1. Open http://localhost:3000
-2. Phone field shows: `9876543210`
-3. Click "Login"
-
-**Expected Result:**
-✅ Dashboard loads for Rajesh Kumar (Mumbai)  
-✅ Shows "Welcome, Rajesh Kumar"  
-✅ Displays city/platform in subheader
-
-**Verification:**
-```
-Console output: No errors
-API call: GET /api/drivers (should succeed)
-```
-
-### Test 1.2: Try All Pre-Seeded Drivers
-**Steps:**
-1. Log out (top-right button)
-2. Try phones: 9876543211, 9876543212, 9876543213, 9876543214
-
-**Expected Result:**
-✅ Each driver has unique:
-  - Name
-  - City (Mumbai, Delhi, Hyderabad, Bangalore, Chennai)
-  - Platform (Swiggy, Zomato, etc.)
-
-### Test 1.3: Register New Driver
-**Steps:**
-1. Click "Register here" link
-2. Fill form:
-   - Name: Test Driver
-   - Phone: 9999999999
-   - City: Mumbai
-   - Avg Daily Earn: ₹950
-   - Weekly Hours: 40
-   - Weekly Orders: 100
-   - Weekly GMV: ₹4,500
-3. Click "Get My Policy & Premium"
-
-**Expected Result:**
-✅ Loading state ("Processing...")  
-✅ Policy created page appears  
-✅ Shows:
-  - Policy ID (first 8 chars uppercase)
-  - Risk Tier: Medium or High
-  - Annual Risk: ₹10,000-20,000 range
-  - Weekly Premium: ₹15-50 range
-✅ Auto-redirects to dashboard after 2 seconds  
-✅ Login now works with new phone
-
-**Verification:**
-```bash
-# In backend terminal, check DB:
-sqlite3 scudo.db "SELECT name, phone, city FROM drivers;"
-# Should show: Test Driver | 9999999999 | Mumbai
-```
-
----
 
 ## Test Suite 2: Policy Management
 
 ### Test 2.1: View Policy Details
 **Steps:**
-1. Login with 9876543210 (Rajesh)
-2. Click "My Policy" in sidebar
-3. View full policy page
+1. Open http://localhost:3000
+2. Click the "📊 Premium Calculator" tab
+3. View the generated full policy snapshot
 
 **Expected Result:**
 ✅ Shows all 5 sections:
@@ -138,11 +77,11 @@ For Rajesh (₹1,200/day, 50h/week, Maharashtra):
 
 ### Test 2.2: Compare Premiums Across Cities
 **Steps:**
-1. Logout, login as different driver from each city:
-   - 9876543210 (Rajesh, Mumbai)
-   - 9876543211 (Priya, Delhi)
-   - 9876543213 (Maya, Bangalore)
-2. For each, view Policy page and note weekly premium
+1. Use the "City" dropdown to switch between:
+   - Mumbai (Rajesh's demo city)
+   - Delhi
+   - Bangalore
+2. For each, note the new weekly premium calculated live
 
 **Expected Result:**
 ✅ Premiums should differ by city:
@@ -405,8 +344,8 @@ Final: 665 × 1.0 = ₹665 ✓
 
 ### Test 5.3: View Claims in UI
 **Steps:**
-1. Login with driver (9876543210)
-2. Click "Claims" in sidebar
+1. Open http://localhost:3000
+2. Click "📋 Claims Engine" tab
 3. Should show claims history
 
 **Expected Result:**
