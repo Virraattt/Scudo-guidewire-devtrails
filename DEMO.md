@@ -15,7 +15,7 @@ The Scudo.jsx React application now integrates with a **production-grade Python 
 ### Architecture
 
 ```
-React Frontend (http://localhost:3000)
+React Frontend (http://localhost:300
            ↓
     useScudoAPI Hook
            ↓
